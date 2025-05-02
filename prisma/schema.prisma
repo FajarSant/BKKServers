@@ -12,7 +12,7 @@ model Pengguna {
   id           Int           @id @default(autoincrement())
   nama         String
   email        String        @unique
-  kataSandi    String
+  katasandi    String
   peran        PeranPengguna
   nisn         String        @unique
   alamat       String?

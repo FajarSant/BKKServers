@@ -16,7 +16,7 @@ import {
     email: string;
   
     @MinLength(6)
-    kataSandi: string;
+    katasandi: string;
   
     @IsEnum(PeranPengguna)
     peran: PeranPengguna;

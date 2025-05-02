@@ -1,75 +1,52 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+// src/auth/auth.service.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { Pengguna } from '@prisma/client'; 
+import * as bcrypt from 'bcryptjs';
+import { LoginDto } from './dto/login.dto';
+import { Pengguna } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async login(nisn: string, password: string) {
-    const user = await this.findUserByNisn(nisn);
+  async login(dto: LoginDto) {
+    const pengguna = await this.prisma.pengguna.findUnique({
+      where: { nisn: dto.nisn },
+    });
 
-    if (!user) {
-      throw new NotFoundException('Pengguna dengan NISN ini tidak ditemukan.');
+    if (!pengguna) {
+      throw new UnauthorizedException({
+        statusCode: 401,
+        message: 'NISN tidak ditemukan. Pastikan NISN yang Anda masukkan benar.',
+        error: 'Unauthorized',
+      });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.kataSandi);
+    const isPasswordValid = await bcrypt.compare(dto.katasandi, pengguna.katasandi);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Password yang Anda masukkan salah.');
+      throw new UnauthorizedException({
+        statusCode: 401,
+        message: 'Kata sandi yang Anda masukkan salah.',
+        error: 'Unauthorized',
+      });
     }
 
-    const payload = { id: user.id, nisn: user.nisn };
-    const jwtSecret = this.configService.get<string>('JWT_SECRET');
-    const expiration = this.configService.get<string>('JWT_EXPIRATION');
+    return this.generateToken(pengguna);
+  }
 
-    const token = this.jwtService.sign(payload, {
-      secret: jwtSecret,
-      expiresIn: expiration,
-    });
-
-    return {
-      message: 'Login berhasil!',
-      access_token: token,
-      user: {
-        id: user.id,
-        nama: user.nama,
-        email: user.email,
-        peran: user.peran,
-        nisn: user.nisn,
-        alamat: user.alamat,
-        telepon: user.telepon,
-        tanggalLahir: user.tanggalLahir,
-        jenisKelamin: user.jenisKelamin,
-        dibuatPada: user.dibuatPada,
-      },
+  private generateToken(pengguna: Pengguna) {
+    const payload = {
+      sub: pengguna.id,
+      email: pengguna.email,
+      peran: pengguna.peran,
     };
-  }
-
-  private async findUserByNisn(nisn: string): Promise<Pengguna | null> {
-    return this.prisma.pengguna.findUnique({
-      where: { nisn },
-    });
-  }
-
-  async getProfile(userId: number): Promise<{ message: string, data: Pengguna }> {
-    const user = await this.prisma.pengguna.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('Profil pengguna tidak ditemukan.');
-    }
 
     return {
-      message: 'Profil pengguna berhasil diambil.',
-      data: user,
+      aksesToken: this.jwtService.sign(payload),
     };
   }
 }

@@ -9,13 +9,13 @@ export class PenggunaService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreatePenggunaDto) {
-    const hashedPassword = await bcrypt.hash(data.kataSandi, 10);
+    const hashedPassword = await bcrypt.hash(data.katasandi, 10);
 
     try {
       return await this.prisma.pengguna.create({
         data: {
           ...data,
-          kataSandi: hashedPassword,
+          katasandi: hashedPassword,
         },
       });
     } catch (error) {
@@ -47,8 +47,8 @@ export class PenggunaService {
   }
 
   async update(id: number, data: UpdatePenggunaDto) {
-    if (data.kataSandi) {
-      data.kataSandi = await bcrypt.hash(data.kataSandi, 10);
+    if (data.katasandi) {
+      data.katasandi = await bcrypt.hash(data.katasandi, 10);
     }
 
     try {

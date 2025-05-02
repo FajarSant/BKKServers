@@ -1,6 +1,6 @@
+// src/auth/jwt-payload.interface.ts
 export interface JwtPayload {
-  email: string;
-  nisn?: string;
   sub: number;
-  loginAt?: string;
+  email: string;
+  peran: 'siswa' | 'alumni' | 'admin';
 }
