@@ -3,7 +3,6 @@ import {
     IsEnum,
     IsOptional,
     IsString,
-    Length,
     MinLength,
   } from 'class-validator';
   import { JenisKelamin, PeranPengguna } from '@prisma/client';
