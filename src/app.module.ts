@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PenggunaService } from './pengguna/pengguna.service';
 import { PenggunaModule } from './pengguna/pengguna.module';
+import { PerusahaanModule } from './perusahaan/perusahaan.module';
 
 @Module({
   imports: [
@@ -29,6 +30,8 @@ import { PenggunaModule } from './pengguna/pengguna.module';
     ConfigModule.forRoot(),
 
     PenggunaModule,
+
+    PerusahaanModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, PenggunaService], 
