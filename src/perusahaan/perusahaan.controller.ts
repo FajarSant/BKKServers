@@ -8,15 +8,22 @@ import {
   Delete,
   NotFoundException,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { PerusahaanService } from './perusahaan.service';
 import { CreatePerusahaanDto } from './dto/create-perusahaan.dto';
 import { UpdatePerusahaanDto } from './dto/update-perusahaan.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/peran.guard';
+import { PeranPengguna } from 'src/common/enums/peran.enum';
+import { Peran } from 'src/common/decorator/peran.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('perusahaan')
 export class PerusahaanController {
   constructor(private readonly perusahaanService: PerusahaanService) {}
 
+  @Peran(PeranPengguna.admin)
   @Post()
   async create(@Body() createPerusahaanDto: CreatePerusahaanDto) {
     try {
@@ -85,7 +92,7 @@ export class PerusahaanController {
           );
     }
   }
-
+  @Peran(PeranPengguna.admin)
   @Put(':id')
   async update(
     @Param('id') id: number,
@@ -113,7 +120,7 @@ export class PerusahaanController {
           );
     }
   }
-
+  @Peran(PeranPengguna.admin)
   @Delete(':id')
   async remove(@Param('id') id: number) {
     try {
