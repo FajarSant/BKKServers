@@ -32,7 +32,19 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto) {
     try {
-      return await this.authService.login(dto);
+      const result = await this.authService.login(dto);
+      const { user, accessToken } = result;
+
+      let redirectTo = '/Id/home';
+      if (user.peran === 'admin') {
+        redirectTo = '/admin/dashboard';
+      }
+
+      return {
+        accessToken,
+        user,
+        redirectTo,
+      };
     } catch (error) {
       throw new UnauthorizedException({
         statusCode: error?.statusCode || 500,

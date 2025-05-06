@@ -45,8 +45,15 @@ export class AuthService {
       peran: pengguna.peran,
     };
 
+    const accessToken = this.jwtService.sign(payload);
+
     return {
-      aksesToken: this.jwtService.sign(payload),
+      accessToken,
+      user: {
+        id: pengguna.id,
+        email: pengguna.email,
+        peran: pengguna.peran,
+      },
     };
   }
 }
