@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PenggunaService } from './pengguna/pengguna.service';
 import { PenggunaModule } from './pengguna/pengguna.module';
 import { PerusahaanModule } from './perusahaan/perusahaan.module';
+import { LowonganModule } from './lowongan/lowongan.module';
 
 @Module({
   imports: [
@@ -32,6 +33,8 @@ import { PerusahaanModule } from './perusahaan/perusahaan.module';
     PenggunaModule,
 
     PerusahaanModule,
+
+    LowonganModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, PenggunaService], 

@@ -9,7 +9,7 @@ import { CreatePenggunaDto } from './dto/create-pengguna.dto';
 import { UpdatePenggunaDto } from './dto/update-pengguna.dto';
 import * as bcrypt from 'bcryptjs';
 import * as ExcelJS from 'exceljs';
-import * as path from 'path';
+import { Buffer } from 'buffer'; // Tambahkan import ini kalau belum
 import { JenisKelamin, PeranPengguna, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -75,43 +75,33 @@ export class PenggunaService {
   }
 
   // Export pengguna ke file Excel
-  async exportToExcel() {
-    const penggunaList = await this.findAll();
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Pengguna Data');
+// pengguna.service.ts
+async exportToExcelBuffer(): Promise<Buffer> {
+  const penggunaList = await this.findAll();
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Pengguna Data');
 
-    worksheet.columns = [
-      { header: 'ID', key: 'id', width: 10 },
-      { header: 'Nama', key: 'nama', width: 30 },
-      { header: 'Email', key: 'email', width: 30 },
-      { header: 'Peran', key: 'peran', width: 15 },
-      { header: 'NISN', key: 'nisn', width: 20 },
-      { header: 'Alamat', key: 'alamat', width: 50 },
-      { header: 'Telepon', key: 'telepon', width: 20 },
-      { header: 'Tanggal Lahir', key: 'tanggalLahir', width: 20 },
-      { header: 'Jenis Kelamin', key: 'jenisKelamin', width: 15 },
-      { header: 'Dibuat Pada', key: 'dibuatPada', width: 20 },
-    ];
+  worksheet.columns = [
+    // { header: 'ID', key: 'id', width: 10 },
+    { header: 'Nama', key: 'nama', width: 30 },
+    { header: 'Email', key: 'email', width: 30 },
+    { header: 'Peran', key: 'peran', width: 15 },
+    { header: 'NISN', key: 'nisn', width: 20 },
+    { header: 'Alamat', key: 'alamat', width: 50 },
+    { header: 'Telepon', key: 'telepon', width: 20 },
+    { header: 'Tanggal Lahir', key: 'tanggalLahir', width: 20 },
+    { header: 'Jenis Kelamin', key: 'jenisKelamin', width: 15 },
+    { header: 'Dibuat Pada', key: 'dibuatPada', width: 20 },
+  ];
 
-    penggunaList.forEach((pengguna) => {
-      worksheet.addRow({
-        id: pengguna.id,
-        nama: pengguna.nama,
-        email: pengguna.email,
-        peran: pengguna.peran,
-        nisn: pengguna.nisn,
-        alamat: pengguna.alamat,
-        telepon: pengguna.telepon,
-        tanggalLahir: pengguna.tanggalLahir,
-        jenisKelamin: pengguna.jenisKelamin,
-        dibuatPada: pengguna.dibuatPada,
-      });
-    });
+  penggunaList.forEach((pengguna) => {
+    worksheet.addRow(pengguna);
+  });
 
-    const filePath = path.join(__dirname, 'pengguna-data.xlsx');
-    await workbook.xlsx.writeFile(filePath);
-    return filePath;
-  }
+  const arrayBuffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 
   // Import pengguna dari file Excel
   async importFromExcel(file: Express.Multer.File) {

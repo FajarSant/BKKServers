@@ -10,7 +10,9 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PenggunaService } from './pengguna.service';
 import { CreatePenggunaDto } from './dto/create-pengguna.dto';
 import { UpdatePenggunaDto } from './dto/update-pengguna.dto';
@@ -31,13 +33,13 @@ export class PenggunaController {
     return this.penggunaService.create(createPenggunaDto);
   }
 
-  @Get()
+  @Get('getall')
   @Peran(PeranPengguna.admin)
   findAll() {
     return this.penggunaService.findAll();
   }
 
-  @Get(':id')
+  @Get('get/:id')
   @Peran(PeranPengguna.admin)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.penggunaService.findOne(id);
@@ -63,5 +65,15 @@ export class PenggunaController {
   @UseInterceptors(FileInterceptor('file'))
   async importExcel(@UploadedFile() file: Express.Multer.File) {
     return this.penggunaService.importFromExcel(file);
+  }
+  @Get('export')
+  @Peran(PeranPengguna.admin)
+  async exportExcel(@Res() res: Response) {
+    const buffer = await this.penggunaService.exportToExcelBuffer();
+  
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=pengguna-data.xlsx');
+  
+    res.send(buffer);
   }
 }
