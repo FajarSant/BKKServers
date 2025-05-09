@@ -13,26 +13,22 @@ import { UpdateLowonganDto } from './dto/update-lowongan.dto';
 export class LowonganService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Fungsi untuk membuat lowongan baru
   async create(dto: CreateLowonganDto) {
     try {
-      // Cek apakah perusahaanId ada dalam DTO
       if (!dto.perusahaanId) {
         throw new BadRequestException('Perusahaan ID wajib dimasukkan.');
       }
 
-      // Cek apakah perusahaan dengan perusahaanId ada di database
       const perusahaan = await this.prisma.perusahaan.findUnique({
         where: { id: dto.perusahaanId },
       });
 
       if (!perusahaan) {
         throw new BadRequestException(
-          `Perusahaan dengan ID ${dto.perusahaanId} tidak ditemukan.`
+          `Perusahaan dengan ID ${dto.perusahaanId} tidak ditemukan.`,
         );
       }
 
-      // Jika perusahaan ada, buat lowongan baru
       const lowongan = await this.prisma.lowongan.create({
         data: {
           nama: dto.nama,
@@ -45,7 +41,7 @@ export class LowonganService {
           linkPendaftaran: dto.linkPendaftaran,
         },
         include: {
-          perusahaan: true, // Menyertakan data perusahaan terkait
+          perusahaan: true,
         },
       });
 
@@ -54,19 +50,17 @@ export class LowonganService {
         data: lowongan,
       };
     } catch (err) {
-      // Log error yang terjadi
-      console.error("Error saat membuat lowongan:", err);
+      console.error('Error saat membuat lowongan:', err);
       throw new BadRequestException(
-        err instanceof Error ? err.message : 'Gagal membuat lowongan.'
+        err instanceof Error ? err.message : 'Gagal membuat lowongan.',
       );
     }
   }
 
-  // Fungsi untuk mendapatkan semua lowongan
   async findAll() {
     const lowongans = await this.prisma.lowongan.findMany({
       include: {
-        perusahaan: true, // Menyertakan data perusahaan terkait
+        perusahaan: true,
       },
       orderBy: {
         dibuatPada: 'desc',
@@ -78,13 +72,11 @@ export class LowonganService {
       data: lowongans,
     };
   }
-
-  // Fungsi untuk mendapatkan satu lowongan berdasarkan ID
   async findOne(id: number) {
     const lowongan = await this.prisma.lowongan.findUnique({
       where: { id },
       include: {
-        perusahaan: true, // Menyertakan data perusahaan terkait
+        perusahaan: true,
       },
     });
 
@@ -98,7 +90,6 @@ export class LowonganService {
     };
   }
 
-  // Fungsi untuk memperbarui lowongan berdasarkan ID
   async update(id: number, dto: UpdateLowonganDto) {
     const exists = await this.prisma.lowongan.findUnique({ where: { id } });
     if (!exists) {
@@ -117,7 +108,7 @@ export class LowonganService {
         linkPendaftaran: dto.linkPendaftaran,
       },
       include: {
-        perusahaan: true, // Menyertakan data perusahaan terkait
+        perusahaan: true,
       },
     });
 
@@ -127,7 +118,6 @@ export class LowonganService {
     };
   }
 
-  // Fungsi untuk menghapus lowongan berdasarkan ID
   async remove(id: number) {
     const exists = await this.prisma.lowongan.findUnique({ where: { id } });
     if (!exists) {
@@ -137,7 +127,7 @@ export class LowonganService {
     const deletedLowongan = await this.prisma.lowongan.delete({
       where: { id },
       include: {
-        perusahaan: true, // Menyertakan data perusahaan terkait
+        perusahaan: true,
       },
     });
 
@@ -162,7 +152,7 @@ export class LowonganService {
     const invalidRows: string[] = [];
 
     worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header
+      if (rowNumber === 1) return;
 
       const nama = row.getCell(1).text.trim();
       const ketentuan = row.getCell(2).text.trim();
@@ -173,7 +163,6 @@ export class LowonganService {
       const expiredAtStr = row.getCell(7).text.trim();
       const linkPendaftaran = row.getCell(8).text.trim();
 
-      // Validasi wajib
       if (
         !nama ||
         !ketentuan ||
@@ -184,8 +173,6 @@ export class LowonganService {
         invalidRows.push(`Baris ${rowNumber}: Data tidak lengkap.`);
         return;
       }
-
-      // Validasi enum JenisPekerjaan
       const allowedJenis: string[] = Object.values(JenisPekerjaan);
       if (!allowedJenis.includes(jenisPekerjaanStr)) {
         invalidRows.push(
@@ -194,14 +181,12 @@ export class LowonganService {
         return;
       }
 
-      // Validasi perusahaanId
       const perusahaanId = parseInt(perusahaan);
       if (isNaN(perusahaanId)) {
         invalidRows.push(`Baris ${rowNumber}: Perusahaan ID tidak valid.`);
         return;
       }
 
-      // Validasi expiredAt
       let expiredAt: string | undefined = undefined;
       if (expiredAtStr) {
         const date = new Date(expiredAtStr);
@@ -280,7 +265,8 @@ export class LowonganService {
         persyaratan: lowongan.persyaratan,
         salary: lowongan.salary,
         jenisPekerjaan: lowongan.jenisPekerjaan,
-        perusahaan: lowongan.perusahaanId + ' - ' + lowongan.perusahaan?.nama || '',
+        perusahaan:
+          lowongan.perusahaanId + ' - ' + lowongan.perusahaan?.nama || '',
         expiredAt: lowongan.expiredAt
           ? lowongan.expiredAt.toISOString().split('T')[0]
           : '',

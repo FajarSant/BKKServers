@@ -1,6 +1,12 @@
-// create-lowongan.dto.ts
-import { IsNotEmpty, IsOptional, IsString, IsEnum, IsInt, IsDateString } from 'class-validator';
-import { JenisPekerjaan } from '@prisma/client'; // Import enum dari Prisma jika sudah di-generate
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsInt,
+  IsDateString,
+} from 'class-validator';
+import { JenisPekerjaan } from '@prisma/client';
 
 export class CreateLowonganDto {
   @IsNotEmpty({ message: 'Nama lowongan tidak boleh kosong.' })
@@ -20,7 +26,7 @@ export class CreateLowonganDto {
   salary?: string;
 
   @IsNotEmpty({ message: 'Jenis pekerjaan harus dipilih.' })
-  @IsEnum(JenisPekerjaan) // Menggunakan enum dari Prisma
+  @IsEnum(JenisPekerjaan)
   jenisPekerjaan: JenisPekerjaan;
 
   @IsNotEmpty({ message: 'Perusahaan wajib dipilih.' })

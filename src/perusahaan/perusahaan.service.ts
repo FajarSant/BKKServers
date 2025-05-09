@@ -28,39 +28,34 @@ export class PerusahaanService {
     });
   }
 
-async remove(id: number) {
-  // Cek apakah perusahaan terkait dengan lowongan
-  const lowongan = await this.prisma.lowongan.findMany({
-    where: {
-      perusahaanId: id, // misalnya `perusahaanId` adalah field relasi dengan `Lowongan`
-    },
-    select: {
-      id: true,
-      nama: true,
-    },
-  });
-
-  if (lowongan.length > 0) {
-    // Hapus semua lowongan terkait terlebih dahulu
-    await this.prisma.lowongan.deleteMany({
+  async remove(id: number) {
+    const lowongan = await this.prisma.lowongan.findMany({
       where: {
-        perusahaanId: id, // Hapus semua lowongan yang terkait dengan perusahaan ini
+        perusahaanId: id,
+      },
+      select: {
+        id: true,
+        nama: true,
       },
     });
 
-    // Membuat daftar lowongan yang dihapus
-    const lowonganNames = lowongan.map(l => `${l.id} - ${l.nama}`).join(', ');
+    if (lowongan.length > 0) {
+      await this.prisma.lowongan.deleteMany({
+        where: {
+          perusahaanId: id,
+        },
+      });
+      const lowonganNames = lowongan
+        .map((l) => `${l.id} - ${l.nama}`)
+        .join(', ');
 
-    // Memberikan notifikasi bahwa lowongan yang berkaitan telah dihapus
-    console.log(`Lowongan terkait perusahaan dihapus: ${lowonganNames}`);
+      console.log(`Lowongan terkait perusahaan dihapus: ${lowonganNames}`);
+    }
+
+    return this.prisma.perusahaan.delete({
+      where: { id },
+    });
   }
-
-  // Hapus perusahaan setelah lowongan dihapus
-  return this.prisma.perusahaan.delete({
-    where: { id },
-  });
-}
-
 
   async exportPerusahaanToExcelBuffer(): Promise<Buffer> {
     try {
@@ -105,7 +100,9 @@ async remove(id: number) {
     const worksheet = workbook.getWorksheet(1);
 
     if (!worksheet) {
-      throw new BadRequestException('Worksheet tidak ditemukan dalam file Excel.');
+      throw new BadRequestException(
+        'Worksheet tidak ditemukan dalam file Excel.',
+      );
     }
 
     const importedData: Prisma.PerusahaanCreateManyInput[] = [];
@@ -115,8 +112,8 @@ async remove(id: number) {
       typeof value === 'string'
         ? value.trim()
         : typeof value === 'number'
-        ? value.toString()
-        : '';
+          ? value.toString()
+          : '';
 
     for (let i = 2; i <= worksheet.rowCount; i++) {
       const row = worksheet.getRow(i);
@@ -132,7 +129,9 @@ async remove(id: number) {
         continue;
       }
 
-      const existing = await this.prisma.perusahaan.findUnique({ where: { email } });
+      const existing = await this.prisma.perusahaan.findUnique({
+        where: { email },
+      });
       if (existing) {
         skippedRows.push(`Baris ${i}: Email sudah terdaftar.`);
         continue;
