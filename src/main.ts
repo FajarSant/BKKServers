@@ -18,7 +18,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*', // CORS_ORIGIN akan diambil dari .env atau fallback ke '*' (semua origin diizinkan)
+    origin: process.env.CORS_ORIGIN || '*', 
     methods: 'GET,POST,PUT,DELETE', 
     allowedHeaders: 'Content-Type, Authorization', 
   });

@@ -27,13 +27,13 @@ import { Peran } from 'src/common/decorator/peran.decorator';
 export class PenggunaController {
   constructor(private readonly penggunaService: PenggunaService) {}
 
-  @Post()
+  @Post('/create')
   @Peran(PeranPengguna.admin)
   create(@Body() createPenggunaDto: CreatePenggunaDto) {
     return this.penggunaService.create(createPenggunaDto);
   }
 
-  @Get('getall')
+  @Get('/getall')
   @Peran(PeranPengguna.admin)
   findAll() {
     return this.penggunaService.findAll();
@@ -45,7 +45,7 @@ export class PenggunaController {
     return this.penggunaService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   @Peran(PeranPengguna.admin)
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -54,26 +54,33 @@ export class PenggunaController {
     return this.penggunaService.update(id, updatePenggunaDto);
   }
 
-  @Delete(':id')
+  @Delete('delete/:id')
   @Peran(PeranPengguna.admin)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.penggunaService.remove(id);
   }
 
-  @Post('import')
+  @Post('/import')
   @Peran(PeranPengguna.admin)
   @UseInterceptors(FileInterceptor('file'))
   async importExcel(@UploadedFile() file: Express.Multer.File) {
     return this.penggunaService.importFromExcel(file);
   }
-  @Get('export')
+
+  @Get('/export')
   @Peran(PeranPengguna.admin)
   async exportExcel(@Res() res: Response) {
     const buffer = await this.penggunaService.exportToExcelBuffer();
-  
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=pengguna-data.xlsx');
-  
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=pengguna-data.xlsx',
+    );
+
     res.send(buffer);
   }
 }

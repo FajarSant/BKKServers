@@ -6,141 +6,128 @@ import {
   Param,
   Put,
   Delete,
-  NotFoundException,
   BadRequestException,
-  UseGuards,
+  Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PerusahaanService } from './perusahaan.service';
 import { CreatePerusahaanDto } from './dto/create-perusahaan.dto';
 import { UpdatePerusahaanDto } from './dto/update-perusahaan.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/peran.guard';
 import { PeranPengguna } from 'src/common/enums/peran.enum';
 import { Peran } from 'src/common/decorator/peran.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('perusahaan')
 export class PerusahaanController {
   constructor(private readonly perusahaanService: PerusahaanService) {}
 
   @Peran(PeranPengguna.admin)
-  @Post()
+  @Post('create')
   async create(@Body() createPerusahaanDto: CreatePerusahaanDto) {
     try {
-      const perusahaan =
-        await this.perusahaanService.create(createPerusahaanDto);
-
-      const totalPerusahaan = await this.perusahaanService.findAll();
-
-      const jumlahPerusahaan = totalPerusahaan.length;
-
+      const perusahaan = await this.perusahaanService.create(createPerusahaanDto);
+      const total = await this.perusahaanService.findAll();
       return {
         message: 'Perusahaan berhasil dibuat.',
         data: perusahaan,
-        jumlahPesan: jumlahPerusahaan,
+        jumlahPesan: total.length,
       };
     } catch (error) {
-      throw new BadRequestException(
-        'Terjadi kesalahan saat membuat perusahaan. Silakan coba lagi.',
-      );
+      throw new BadRequestException('Terjadi kesalahan saat membuat perusahaan.');
     }
   }
 
-  @Get()
+  @Get('getall')
   async findAll() {
     try {
       const perusahaan = await this.perusahaanService.findAll();
-      const jumlahPesan = perusahaan.length;
-
-      if (perusahaan.length === 0) {
-        return {
-          message: 'Tidak ada perusahaan yang ditemukan.',
-          data: [],
-          jumlahPesan: jumlahPesan,
-        };
-      }
       return {
-        message: 'Data perusahaan berhasil diambil.',
+        message:
+          perusahaan.length > 0
+            ? 'Data perusahaan berhasil diambil.'
+            : 'Tidak ada perusahaan yang ditemukan.',
         data: perusahaan,
-        jumlahPesan: jumlahPesan,
+        jumlahPesan: perusahaan.length,
       };
-    } catch (error) {
-      throw new BadRequestException(
-        'Terjadi kesalahan saat mengambil data perusahaan.',
-      );
+    } catch {
+      throw new BadRequestException('Terjadi kesalahan saat mengambil data perusahaan.');
     }
   }
 
-  @Get(':id')
+  @Get('get/:id')
   async findOne(@Param('id') id: number) {
     try {
       const perusahaan = await this.perusahaanService.findOne(id);
       if (!perusahaan) {
-        throw new NotFoundException(
-          `Perusahaan dengan ID ${id} tidak ditemukan.`,
-        );
+        throw new BadRequestException(`Perusahaan dengan ID ${id} tidak ditemukan.`);
       }
       return {
         message: 'Data perusahaan ditemukan.',
         data: perusahaan,
       };
-    } catch (error) {
-      throw error instanceof NotFoundException
-        ? error
-        : new BadRequestException(
-            'Terjadi kesalahan saat mengambil data perusahaan.',
-          );
+    } catch {
+      throw new BadRequestException('Terjadi kesalahan saat mengambil data perusahaan.');
     }
   }
+
   @Peran(PeranPengguna.admin)
-  @Put(':id')
-  async update(
-    @Param('id') id: number,
-    @Body() updatePerusahaanDto: UpdatePerusahaanDto,
-  ) {
+  @Put('update/:id')
+  async update(@Param('id') id: number, @Body() updatePerusahaanDto: UpdatePerusahaanDto) {
     try {
-      const perusahaan = await this.perusahaanService.update(
-        id,
-        updatePerusahaanDto,
-      );
-      if (!perusahaan) {
-        throw new NotFoundException(
-          `Perusahaan dengan ID ${id} tidak ditemukan untuk diperbarui.`,
-        );
-      }
+      const perusahaan = await this.perusahaanService.update(id, updatePerusahaanDto);
       return {
         message: 'Perusahaan berhasil diperbarui.',
         data: perusahaan,
       };
-    } catch (error) {
-      throw error instanceof NotFoundException
-        ? error
-        : new BadRequestException(
-            'Terjadi kesalahan saat memperbarui perusahaan.',
-          );
+    } catch {
+      throw new BadRequestException('Terjadi kesalahan saat memperbarui perusahaan.');
     }
   }
+
   @Peran(PeranPengguna.admin)
-  @Delete(':id')
+  @Delete('delete/:id')
   async remove(@Param('id') id: number) {
     try {
       const perusahaan = await this.perusahaanService.remove(id);
-      if (!perusahaan) {
-        throw new NotFoundException(
-          `Perusahaan dengan ID ${id} tidak ditemukan untuk dihapus.`,
-        );
-      }
       return {
         message: 'Perusahaan berhasil dihapus.',
         data: perusahaan,
-        jumlahPesan: 1,
       };
-    } catch (error) {
-      throw error instanceof NotFoundException
-        ? error
-        : new BadRequestException(
-            'Terjadi kesalahan saat menghapus perusahaan.',
-          );
+    } catch {
+      throw new BadRequestException('Terjadi kesalahan saat menghapus perusahaan.');
+    }
+  }
+
+  @Get('export')
+  @Peran(PeranPengguna.admin)
+  async exportExcel(@Res() res: Response) {
+    try {
+      const buffer = await this.perusahaanService.exportPerusahaanToExcelBuffer();
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader('Content-Disposition', 'attachment; filename=perusahaan.xlsx');
+      res.send(buffer);
+    } catch {
+      throw new BadRequestException('Terjadi kesalahan saat mengekspor perusahaan.');
+    }
+  }
+
+  @Post('import')
+  @Peran(PeranPengguna.admin)
+  @UseInterceptors(FileInterceptor('file'))
+  async importExcel(@UploadedFile() file: Express.Multer.File) {
+    try {
+      const result = await this.perusahaanService.importPerusahaanFromExcel(file);
+      return {
+        message: result.message,
+        skippedRows: result.skippedRows,
+      };
+    } catch {
+      throw new BadRequestException('Terjadi kesalahan saat mengimpor perusahaan.');
     }
   }
 }
