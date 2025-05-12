@@ -65,7 +65,6 @@ export class PerusahaanService {
       const worksheet = workbook.addWorksheet('Data Perusahaan');
 
       worksheet.columns = [
-        { header: 'ID', key: 'id', width: 10 },
         { header: 'Nama', key: 'nama', width: 30 },
         { header: 'Gambar', key: 'gambar', width: 30 },
         { header: 'Alamat', key: 'alamat', width: 40 },
@@ -76,7 +75,6 @@ export class PerusahaanService {
 
       perusahaanList.forEach((p) => {
         worksheet.addRow({
-          id: p.id,
           nama: p.nama,
           gambar: p.gambar || '',
           alamat: p.alamat,
