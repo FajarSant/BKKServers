@@ -10,7 +10,7 @@ import { UpdatePenggunaDto } from './dto/update-pengguna.dto';
 import * as bcrypt from 'bcryptjs';
 import * as ExcelJS from 'exceljs';
 import { Buffer } from 'buffer';
-import { Prisma } from '@prisma/client';
+import { Prisma, PeranPengguna, JenisKelamin } from '@prisma/client';
 
 @Injectable()
 export class PenggunaService {
@@ -27,7 +27,15 @@ export class PenggunaService {
         },
       });
     } catch (error) {
-      throw new BadRequestException('Email atau NISN sudah terdaftar.');
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException('Email atau NISN sudah terdaftar.');
+      }
+      throw new InternalServerErrorException(
+        'Terjadi kesalahan saat menyimpan pengguna.',
+      );
     }
   }
 
@@ -55,18 +63,44 @@ export class PenggunaService {
   }
 
   async update(id: number, data: UpdatePenggunaDto) {
-    if (data.katasandi) {
-      data.katasandi = await bcrypt.hash(data.katasandi, 10);
+    const existingPengguna = await this.prisma.pengguna.findUnique({
+      where: { id },
+    });
+
+    if (!existingPengguna) {
+      throw new NotFoundException('Pengguna tidak ditemukan.');
+    }
+
+    // Hash katasandi jika diisi, jika tidak gunakan yang lama
+    let hashedPassword = existingPengguna.katasandi;
+    if (data.katasandi && data.katasandi !== '') {
+      hashedPassword = await bcrypt.hash(data.katasandi, 10);
     }
 
     try {
+      const updatedData: Prisma.PenggunaUpdateInput = {
+        nama: data.nama ?? existingPengguna.nama,
+        email: data.email ?? existingPengguna.email,
+        nisn: data.nisn ?? existingPengguna.nisn,
+        alamat: data.alamat ?? existingPengguna.alamat,
+        telepon: data.telepon ?? existingPengguna.telepon,
+        tanggalLahir: data.tanggalLahir ?? existingPengguna.tanggalLahir,
+        peran: data.peran
+          ? (data.peran as PeranPengguna)
+          : existingPengguna.peran,
+        jenisKelamin: data.jenisKelamin
+          ? (data.jenisKelamin as JenisKelamin)
+          : existingPengguna.jenisKelamin,
+        katasandi: hashedPassword,
+      };
+
       return await this.prisma.pengguna.update({
         where: { id },
-        data,
+        data: updatedData,
       });
-    } catch {
-      throw new NotFoundException(
-        'Pengguna dengan ID tersebut tidak ditemukan.',
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Terjadi kesalahan saat memperbarui data pengguna.',
       );
     }
   }
@@ -75,13 +109,13 @@ export class PenggunaService {
     await this.findOne(id);
     return this.prisma.pengguna.delete({ where: { id } });
   }
+
   async exportToExcelBuffer(): Promise<Buffer> {
     const penggunaList = await this.findAll();
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Pengguna Data');
 
     worksheet.columns = [
-      // { header: 'ID', key: 'id', width: 10 },
       { header: 'Nama', key: 'nama', width: 30 },
       { header: 'Email', key: 'email', width: 30 },
       { header: 'Peran', key: 'peran', width: 15 },
@@ -147,18 +181,15 @@ export class PenggunaService {
       }
 
       if (!validPeran.includes(peranStr)) {
-        invalidRows.push(
-          `Baris ${rowNumber}: Peran tidak valid. Harus salah satu dari: ${validPeran.join(', ')}.`,
-        );
+        invalidRows.push(`Baris ${rowNumber}: Peran tidak valid.`);
         continue;
       }
 
       if (!validJenisKelamin.includes(jenisKelaminStr)) {
-        invalidRows.push(
-          `Baris ${rowNumber}: Jenis Kelamin tidak valid. Harus laki_laki atau perempuan.`,
-        );
+        invalidRows.push(`Baris ${rowNumber}: Jenis Kelamin tidak valid.`);
         continue;
       }
+
       let tanggalLahir: Date;
       if (tanggalLahirRaw instanceof Date) {
         tanggalLahir = tanggalLahirRaw;
@@ -170,17 +201,16 @@ export class PenggunaService {
         }
         tanggalLahir = parsed;
       }
+
       const existing = await this.prisma.pengguna.findFirst({
         where: {
-          OR: [{ email: email }, { nisn: nisn }],
+          OR: [{ email }, { nisn }],
         },
         select: { id: true },
       });
 
       if (existing) {
-        invalidRows.push(
-          `Baris ${rowNumber}: Email atau NISN sudah ada, dilewati.`,
-        );
+        invalidRows.push(`Baris ${rowNumber}: Email atau NISN sudah ada.`);
         continue;
       }
 
@@ -218,9 +248,8 @@ export class PenggunaService {
         invalidRows,
       };
     } catch (error) {
-      console.error('Gagal menyimpan ke database:', error);
       throw new InternalServerErrorException({
-        message: 'Terjadi kesalahan saat menyimpan ke database.',
+        message: 'Gagal menyimpan ke database.',
         detail: error.message,
       });
     }

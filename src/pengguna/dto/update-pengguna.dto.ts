@@ -1,4 +1,38 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePenggunaDto } from './create-pengguna.dto';
+import { IsOptional, IsString, IsEmail } from 'class-validator';
 
-export class UpdatePenggunaDto extends PartialType(CreatePenggunaDto) {}
+export class UpdatePenggunaDto {
+  @IsOptional()
+  @IsString()
+  nama?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  katasandi?: string;
+
+  @IsOptional()
+  @IsString()
+  nisn?: string;
+
+  @IsOptional()
+  @IsString()
+  alamat?: string;
+
+  @IsOptional()
+  @IsString()
+  telepon?: string;
+
+  @IsOptional()
+  tanggalLahir?: Date;
+
+  @IsOptional()
+  @IsString()
+  jenisKelamin?: string;
+
+  @IsOptional()
+  @IsString()
+  peran?: string;
+}

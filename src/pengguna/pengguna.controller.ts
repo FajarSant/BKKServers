@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   ParseIntPipe,
@@ -11,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Put,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PenggunaService } from './pengguna.service';
@@ -45,7 +45,7 @@ export class PenggunaController {
     return this.penggunaService.findOne(id);
   }
 
-  @Patch('update/:id')
+  @Put('update/:id')
   @Peran(PeranPengguna.admin)
   update(
     @Param('id', ParseIntPipe) id: number,
