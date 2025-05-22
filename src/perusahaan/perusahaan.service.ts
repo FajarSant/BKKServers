@@ -14,11 +14,20 @@ export class PerusahaanService {
   }
 
   async findAll() {
-    return this.prisma.perusahaan.findMany();
+    return this.prisma.perusahaan.findMany({
+      include: {
+        lowongan: true,
+      },
+    });
   }
 
   async findOne(id: number) {
-    return this.prisma.perusahaan.findUnique({ where: { id } });
+    return this.prisma.perusahaan.findUnique({
+      where: { id },
+      include: {
+        lowongan: true,
+      },
+    });
   }
 
   async update(id: number, updatePerusahaanDto: UpdatePerusahaanDto) {
