@@ -35,7 +35,7 @@ export class AuthController {
       const result = await this.authService.login(dto);
       const { user, accessToken } = result;
 
-      let redirectTo = '/Id/home';
+      let redirectTo = '/Id/';
       if (user.peran === 'admin') {
         redirectTo = '/admin/dashboard';
       }
