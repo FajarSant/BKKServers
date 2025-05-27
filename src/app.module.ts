@@ -10,6 +10,7 @@ import { PenggunaService } from './pengguna/pengguna.service';
 import { PenggunaModule } from './pengguna/pengguna.module';
 import { PerusahaanModule } from './perusahaan/perusahaan.module';
 import { LowonganModule } from './lowongan/lowongan.module';
+import { LowonganDisimpanModule } from './lowongan-disimpan/lowongan-disimpan.module';
 
 @Module({
   imports: [
@@ -35,6 +36,8 @@ import { LowonganModule } from './lowongan/lowongan.module';
     PerusahaanModule,
 
     LowonganModule,
+
+    LowonganDisimpanModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, PenggunaService], 

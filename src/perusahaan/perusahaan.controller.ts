@@ -10,6 +10,7 @@ import {
   Res,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PerusahaanService } from './perusahaan.service';
@@ -18,16 +19,20 @@ import { UpdatePerusahaanDto } from './dto/update-perusahaan.dto';
 import { PeranPengguna } from 'src/common/enums/peran.enum';
 import { Peran } from 'src/common/decorator/peran.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/peran.guard';
 
 @Controller('perusahaan')
 export class PerusahaanController {
   constructor(private readonly perusahaanService: PerusahaanService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
   @Post('create')
   async create(@Body() createPerusahaanDto: CreatePerusahaanDto) {
     try {
-      const perusahaan = await this.perusahaanService.create(createPerusahaanDto);
+      const perusahaan =
+        await this.perusahaanService.create(createPerusahaanDto);
       const total = await this.perusahaanService.findAll();
       return {
         message: 'Perusahaan berhasil dibuat.',
@@ -35,7 +40,9 @@ export class PerusahaanController {
         jumlahPesan: total.length,
       };
     } catch (error) {
-      throw new BadRequestException('Terjadi kesalahan saat membuat perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat membuat perusahaan.',
+      );
     }
   }
 
@@ -52,7 +59,9 @@ export class PerusahaanController {
         jumlahPesan: perusahaan.length,
       };
     } catch {
-      throw new BadRequestException('Terjadi kesalahan saat mengambil data perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat mengambil data perusahaan.',
+      );
     }
   }
 
@@ -61,31 +70,45 @@ export class PerusahaanController {
     try {
       const perusahaan = await this.perusahaanService.findOne(id);
       if (!perusahaan) {
-        throw new BadRequestException(`Perusahaan dengan ID ${id} tidak ditemukan.`);
+        throw new BadRequestException(
+          `Perusahaan dengan ID ${id} tidak ditemukan.`,
+        );
       }
       return {
         message: 'Data perusahaan ditemukan.',
         data: perusahaan,
       };
     } catch {
-      throw new BadRequestException('Terjadi kesalahan saat mengambil data perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat mengambil data perusahaan.',
+      );
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
   @Put('update/:id')
-  async update(@Param('id') id: number, @Body() updatePerusahaanDto: UpdatePerusahaanDto) {
+  async update(
+    @Param('id') id: number,
+    @Body() updatePerusahaanDto: UpdatePerusahaanDto,
+  ) {
     try {
-      const perusahaan = await this.perusahaanService.update(id, updatePerusahaanDto);
+      const perusahaan = await this.perusahaanService.update(
+        id,
+        updatePerusahaanDto,
+      );
       return {
         message: 'Perusahaan berhasil diperbarui.',
         data: perusahaan,
       };
     } catch {
-      throw new BadRequestException('Terjadi kesalahan saat memperbarui perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat memperbarui perusahaan.',
+      );
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
   @Delete('delete/:id')
   async remove(@Param('id') id: number) {
@@ -96,7 +119,9 @@ export class PerusahaanController {
         data: perusahaan,
       };
     } catch {
-      throw new BadRequestException('Terjadi kesalahan saat menghapus perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat menghapus perusahaan.',
+      );
     }
   }
 
@@ -104,15 +129,21 @@ export class PerusahaanController {
   @Peran(PeranPengguna.admin)
   async exportExcel(@Res() res: Response) {
     try {
-      const buffer = await this.perusahaanService.exportPerusahaanToExcelBuffer();
+      const buffer =
+        await this.perusahaanService.exportPerusahaanToExcelBuffer();
       res.setHeader(
         'Content-Type',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
-      res.setHeader('Content-Disposition', 'attachment; filename=perusahaan.xlsx');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=perusahaan.xlsx',
+      );
       res.send(buffer);
     } catch {
-      throw new BadRequestException('Terjadi kesalahan saat mengekspor perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat mengekspor perusahaan.',
+      );
     }
   }
 
@@ -121,13 +152,16 @@ export class PerusahaanController {
   @UseInterceptors(FileInterceptor('file'))
   async importExcel(@UploadedFile() file: Express.Multer.File) {
     try {
-      const result = await this.perusahaanService.importPerusahaanFromExcel(file);
+      const result =
+        await this.perusahaanService.importPerusahaanFromExcel(file);
       return {
         message: result.message,
         skippedRows: result.skippedRows,
       };
     } catch {
-      throw new BadRequestException('Terjadi kesalahan saat mengimpor perusahaan.');
+      throw new BadRequestException(
+        'Terjadi kesalahan saat mengimpor perusahaan.',
+      );
     }
   }
 }
