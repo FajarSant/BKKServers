@@ -23,7 +23,7 @@ export class LowonganDisimpanController {
   constructor(private readonly service: LowonganDisimpanService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Peran(PeranPengguna.admin)
+  @Peran(PeranPengguna.siswa, PeranPengguna.alumni)
   @Post()
   async create(@Body() dto: CreateLowonganDisimpanDto, @Res() res: Response) {
     const { penggunaId, lowonganId } = dto;

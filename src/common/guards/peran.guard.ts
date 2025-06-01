@@ -22,7 +22,7 @@ import {
   
       const { user } = context.switchToHttp().getRequest();
       if (!requiredRoles.includes(user.peran)) {
-        throw new ForbiddenException('Akses ditolak: hanya admin yang diizinkan');
+        throw new ForbiddenException('Akses ditolak: hanya pengguna tertentu yang diizinkan');
       }
   
       return true;
