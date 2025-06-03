@@ -8,6 +8,25 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum JenisKelamin {
+  laki_laki
+  perempuan
+}
+
+enum PeranPengguna {
+  siswa
+  alumni
+  admin
+}
+
+enum JenisPekerjaan {
+  magang
+  paruh_waktu
+  penuh_waktu
+  freelance
+  kontrak
+}
+
 model Pengguna {
   id               Int                @id @default(autoincrement())
   nama             String
@@ -70,21 +89,4 @@ model LowonganDisimpan {
   tanggal    DateTime @default(now())
 }
 
-enum JenisKelamin {
-  laki_laki
-  perempuan
-}
 
-enum PeranPengguna {
-  siswa
-  alumni
-  admin
-}
-
-enum JenisPekerjaan {
-  magang
-  paruh_waktu
-  penuh_waktu
-  freelance
-  kontrak
-}
