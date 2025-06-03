@@ -1,31 +1,31 @@
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express'; // ✅ Import langsung, bukan `* as e`
+import * as dotenv from 'dotenv';
 
-const server = express(); // ✅ Jangan pakai `e()`
+// Memuat file .env
+dotenv.config();
 
-async function createApp() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
+      whitelist: true, 
+      forbidNonWhitelisted: true, 
+      transform: true, 
     }),
   );
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: 'GET,POST,PUT,DELETE',
-    allowedHeaders: 'Content-Type, Authorization',
+    origin: process.env.CORS_ORIGIN || '*', 
+    methods: 'GET,POST,PUT,DELETE', 
+    allowedHeaders: 'Content-Type, Authorization', 
   });
 
-  await app.init();
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 
-createApp();
-
-export default server;
+bootstrap();
