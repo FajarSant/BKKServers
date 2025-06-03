@@ -1,16 +1,12 @@
+import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import { AppModule } from './app.module';
-import * as express from 'express';
-import * as dotenv from 'dotenv';
+import express from 'express'; // ✅ Import langsung, bukan `* as e`
 
-// Load .env file
-dotenv.config();
+const server = express(); // ✅ Jangan pakai `e()`
 
-const server = express();
-
-async function bootstrap() {
+async function createApp() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   app.useGlobalPipes(
@@ -30,6 +26,6 @@ async function bootstrap() {
   await app.init();
 }
 
-bootstrap();
+createApp();
 
-export default server; // <= Ini penting agar bisa digunakan di Vercel
+export default server;
