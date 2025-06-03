@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "app/generated/prisma/client"
 }
 
 datasource db {
@@ -60,8 +61,8 @@ model Lamaran {
   penggunaId     Int
   lowongan       Lowongan  @relation(fields: [lowonganId], references: [id])
   lowonganId     Int
-  tanggal        DateTime  @default(now()) 
-  waktuPelamaran DateTime? 
+  tanggal        DateTime  @default(now())
+  waktuPelamaran DateTime?
 }
 
 model Lowongan {
@@ -75,7 +76,7 @@ model Lowongan {
   perusahaanId    Int
   dibuatPada      DateTime           @default(now())
   expiredAt       DateTime?
-  linkPendaftaran String? 
+  linkPendaftaran String?
   lamaran         Lamaran[]
   disimpanOleh    LowonganDisimpan[]
 }
@@ -88,5 +89,3 @@ model LowonganDisimpan {
   lowonganId Int
   tanggal    DateTime @default(now())
 }
-
-
