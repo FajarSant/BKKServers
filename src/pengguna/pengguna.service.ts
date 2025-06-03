@@ -10,7 +10,7 @@ import { UpdatePenggunaDto } from './dto/update-pengguna.dto';
 import * as bcrypt from 'bcryptjs';
 import * as ExcelJS from 'exceljs';
 import { Buffer } from 'buffer';
-import { Prisma, PeranPengguna, JenisKelamin } from '../generated/prisma/client';
+import { Prisma, PeranPengguna, JenisKelamin } from '@prisma/client';
 
 @Injectable()
 export class PenggunaService {

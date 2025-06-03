@@ -6,7 +6,7 @@ import {
   IsInt,
   IsDateString,
 } from 'class-validator';
-import { JenisPekerjaan } from '../../generated/prisma/client';
+import { JenisPekerjaan } from '@prisma/client';
 
 export class CreateLowonganDto {
   @IsNotEmpty({ message: 'Nama lowongan tidak boleh kosong.' })

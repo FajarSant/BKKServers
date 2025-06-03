@@ -5,7 +5,7 @@ import {
     IsString,
     MinLength,
   } from 'class-validator';
-  import { JenisKelamin, PeranPengguna } from '../../generated/prisma/client';
+  import { JenisKelamin, PeranPengguna } from '@prisma/client';
   
   export class CreatePenggunaDto {
     @IsString()
