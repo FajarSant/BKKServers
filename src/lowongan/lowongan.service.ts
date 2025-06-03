@@ -103,6 +103,7 @@ export class LowonganService {
         ketentuan: dto.ketentuan,
         persyaratan: dto.persyaratan,
         salary: dto.salary,
+        perusahaanId : dto.perusahaanId,
         jenisPekerjaan: dto.jenisPekerjaan,
         expiredAt: dto.expiredAt ? new Date(dto.expiredAt) : undefined,
         linkPendaftaran: dto.linkPendaftaran,
