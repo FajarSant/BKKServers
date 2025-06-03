@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
-import { JenisPekerjaan, Prisma } from '@prisma/client';
+import { JenisPekerjaan, Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLowonganDto } from './dto/create-lowongan.dto';
 import { UpdateLowonganDto } from './dto/update-lowongan.dto';

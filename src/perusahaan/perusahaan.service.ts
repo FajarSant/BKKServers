@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 import * as ExcelJS from 'exceljs';
 import { CreatePerusahaanDto } from './dto/create-perusahaan.dto';
 import { UpdatePerusahaanDto } from './dto/update-perusahaan.dto';
