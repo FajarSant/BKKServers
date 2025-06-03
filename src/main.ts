@@ -1,31 +1,35 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import { AppModule } from './app.module';
+import * as express from 'express';
 import * as dotenv from 'dotenv';
 
-// Memuat file .env
+// Load .env file
 dotenv.config();
 
+const server = express();
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, 
-      forbidNonWhitelisted: true, 
-      transform: true, 
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*', 
-    methods: 'GET,POST,PUT,DELETE', 
-    allowedHeaders: 'Content-Type, Authorization', 
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: 'GET,POST,PUT,DELETE',
+    allowedHeaders: 'Content-Type, Authorization',
   });
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  await app.init();
 }
 
 bootstrap();
+
+export default server; // <= Ini penting agar bisa digunakan di Vercel
