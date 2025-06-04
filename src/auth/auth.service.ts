@@ -44,7 +44,11 @@ export class AuthService {
       peran: pengguna.peran,
     };
 
+    // Menghasilkan token dengan JWT
     const accessToken = this.jwtService.sign(payload);
+
+    // Menentukan tokenName berdasarkan peran
+    const tokenName = `${pengguna.peran}_token`;
 
     return {
       accessToken,
@@ -53,6 +57,7 @@ export class AuthService {
         email: pengguna.email,
         peran: pengguna.peran,
       },
+      tokenName, // Kembalikan nama token (siswa_token, admin_token, dll)
     };
   }
 }

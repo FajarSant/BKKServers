@@ -32,8 +32,9 @@ export class AuthController {
   async login(@Body() dto: LoginDto) {
     try {
       const result = await this.authService.login(dto);
-      const { user, accessToken } = result;
+      const { user, accessToken, tokenName } = result;
 
+      // Menentukan halaman redirect berdasarkan peran
       let redirectTo = '/Id/';
       if (user.peran === 'admin') {
         redirectTo = '/admin/dashboard';
@@ -43,7 +44,7 @@ export class AuthController {
         accessToken,
         user,
         redirectTo,
-        tokenName: user.peran,
+        tokenName
       };
     } catch (error) {
       throw new UnauthorizedException({

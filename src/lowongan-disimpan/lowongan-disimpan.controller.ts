@@ -39,6 +39,8 @@ export class LowonganDisimpanController {
     });
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Peran(PeranPengguna.siswa, PeranPengguna.alumni)
   @Get('/:penggunaId')
   async findByPenggunaId(
     @Param('penggunaId', ParseIntPipe) penggunaId: number,
@@ -56,6 +58,8 @@ export class LowonganDisimpanController {
     };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Peran(PeranPengguna.siswa, PeranPengguna.alumni)
   @Delete(':penggunaId/:lowonganId')
   async remove(
     @Param('penggunaId', ParseIntPipe) penggunaId: number,

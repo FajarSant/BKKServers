@@ -27,7 +27,7 @@ export class PerusahaanController {
   constructor(private readonly perusahaanService: PerusahaanService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Peran(PeranPengguna.admin)
+  @Peran(PeranPengguna.siswa, PeranPengguna.alumni, PeranPengguna.admin)
   @Post('create')
   async create(@Body() createPerusahaanDto: CreatePerusahaanDto) {
     try {
@@ -46,6 +46,8 @@ export class PerusahaanController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Peran(PeranPengguna.siswa, PeranPengguna.alumni, PeranPengguna.admin)
   @Get('getall')
   async findAll() {
     try {
@@ -65,6 +67,8 @@ export class PerusahaanController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Peran(PeranPengguna.siswa, PeranPengguna.alumni, PeranPengguna.admin)
   @Get('get/:id')
   async findOne(@Param('id') id: number) {
     try {
@@ -125,8 +129,9 @@ export class PerusahaanController {
     }
   }
 
-  @Get('export')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
+  @Get('export')
   async exportExcel(@Res() res: Response) {
     try {
       const buffer =
@@ -147,8 +152,9 @@ export class PerusahaanController {
     }
   }
 
-  @Post('import')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
+  @Post('import')
   @UseInterceptors(FileInterceptor('file'))
   async importExcel(@UploadedFile() file: Express.Multer.File) {
     try {

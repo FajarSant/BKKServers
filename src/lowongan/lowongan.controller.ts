@@ -42,7 +42,8 @@ export class LowonganController {
       );
     }
   }
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Peran(PeranPengguna.admin, PeranPengguna.siswa, PeranPengguna.alumni)
   @Get('getall')
   async findAll() {
     try {
@@ -55,7 +56,8 @@ export class LowonganController {
       );
     }
   }
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Peran(PeranPengguna.admin, PeranPengguna.siswa, PeranPengguna.alumni)
   @Get('get/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     try {
@@ -101,27 +103,41 @@ export class LowonganController {
       );
     }
   }
-  @Get('export')
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
+  @Get('export')
   async exportExcel(@Res() res: Response) {
-    const buffer = await this.lowonganService.exportToExcelBuffer();
+    try {
+      const buffer = await this.lowonganService.exportToExcelBuffer();
 
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename=lowongan-data.xlsx',
-    );
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=lowongan-data.xlsx',
+      );
 
-    res.send(buffer);
+      res.send(buffer);
+    } catch (err) {
+      throw new HttpException(
+        'Gagal mengekspor data.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  @Post('import')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Peran(PeranPengguna.admin)
+  @Post('import')
   @UseInterceptors(FileInterceptor('file'))
   async importExcel(@UploadedFile() file: Express.Multer.File) {
-    return this.lowonganService.importFromExcel(file);
+    try {
+      return await this.lowonganService.importFromExcel(file);
+    } catch (err) {
+      throw new HttpException('Gagal mengimpor data.', HttpStatus.BAD_REQUEST);
+    }
   }
 }
