@@ -1,4 +1,3 @@
-// src/auth/auth.controller.ts
 import {
   Controller,
   Post,
@@ -44,6 +43,7 @@ export class AuthController {
         accessToken,
         user,
         redirectTo,
+        tokenName: user.peran,
       };
     } catch (error) {
       throw new UnauthorizedException({
