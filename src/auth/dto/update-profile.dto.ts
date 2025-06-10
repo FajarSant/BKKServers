@@ -1,4 +1,3 @@
-
 import {
   IsString,
   IsOptional,
@@ -19,7 +18,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  katasandi?: string; 
+  katasandi?: string;
 
   @IsOptional()
   @IsString()
