@@ -3,12 +3,17 @@ import {
   Post,
   Body,
   Get,
+  Put,
+  Patch,
   UseGuards,
   Request,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { Request as ExpressRequest } from 'express';
@@ -33,8 +38,6 @@ export class AuthController {
     try {
       const result = await this.authService.login(dto);
       const { user, accessToken, tokenName } = result;
-
-      // Menentukan halaman redirect berdasarkan peran
       let redirectTo = '/Id/';
       if (user.peran === 'admin') {
         redirectTo = '/admin/dashboard';
@@ -44,7 +47,7 @@ export class AuthController {
         accessToken,
         user,
         redirectTo,
-        tokenName
+        tokenName,
       };
     } catch (error) {
       throw new UnauthorizedException({
@@ -84,5 +87,56 @@ export class AuthController {
     }
 
     return user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  async updateProfile(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    try {
+      const userId = req.user.id;
+      const updatedUser = await this.authService.updateProfile(userId, dto);
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException({
+        statusCode: error?.statusCode || 400,
+        message:
+          error?.response?.message || 'Gagal memperbarui profil pengguna.',
+        error: error?.response?.error || 'Bad Request',
+      });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('change-password')
+  async changePassword(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    try {
+      const userId = req.user.id;
+      const result = await this.authService.changePassword(userId, dto);
+      return result;
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException({
+        statusCode: 500,
+        message: 'Gagal mengubah kata sandi. Silakan coba lagi.',
+        error: 'Internal Server Error',
+      });
+    }
   }
 }

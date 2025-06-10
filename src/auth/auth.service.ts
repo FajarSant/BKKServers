@@ -1,8 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { Pengguna } from '@prisma/client';
 
 @Injectable()
@@ -20,12 +26,16 @@ export class AuthService {
     if (!pengguna) {
       throw new UnauthorizedException({
         statusCode: 401,
-        message: 'NISN tidak ditemukan. Pastikan NISN yang Anda masukkan benar.',
+        message:
+          'NISN tidak ditemukan. Pastikan NISN yang Anda masukkan benar.',
         error: 'Unauthorized',
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.katasandi, pengguna.katasandi);
+    const isPasswordValid = await bcrypt.compare(
+      dto.katasandi,
+      pengguna.katasandi,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException({
         statusCode: 401,
@@ -44,10 +54,8 @@ export class AuthService {
       peran: pengguna.peran,
     };
 
-    // Menghasilkan token dengan JWT
     const accessToken = this.jwtService.sign(payload);
 
-    // Menentukan tokenName berdasarkan peran
     const tokenName = `${pengguna.peran}_token`;
 
     return {
@@ -57,7 +65,73 @@ export class AuthService {
         email: pengguna.email,
         peran: pengguna.peran,
       },
-      tokenName, // Kembalikan nama token (siswa_token, admin_token, dll)
+      tokenName,
     };
+  }
+
+  async updateProfile(userId: number, dto: UpdateProfileDto) {
+    const user = await this.prisma.pengguna.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException({
+        statusCode: 404,
+        message: 'Pengguna tidak ditemukan.',
+        error: 'Not Found',
+      });
+    }
+    if (dto.katasandi) {
+      dto.katasandi = await bcrypt.hash(dto.katasandi, 10);
+    }
+
+    const dataToUpdate = Object.fromEntries(
+      Object.entries(dto).filter(([, value]) => value !== undefined),
+    );
+
+    return this.prisma.pengguna.update({
+      where: { id: userId },
+      data: dataToUpdate,
+      select: {
+        id: true,
+        nama: true,
+        email: true,
+        peran: true,
+        nisn: true,
+        alamat: true,
+        telepon: true,
+        tanggalLahir: true,
+        jenisKelamin: true,
+        dibuatPada: true,
+      },
+    });
+  }
+
+  async changePassword(
+    userId: number,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.prisma.pengguna.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Pengguna tidak ditemukan.');
+    }
+    const isOldPasswordValid = await bcrypt.compare(
+      dto.katasandilama,
+      user.katasandi,
+    );
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('Kata sandi lama tidak cocok.');
+    }
+    const hashedPassword = await bcrypt.hash(dto.katasandibaru, 10);
+
+    await this.prisma.pengguna.update({
+      where: { id: userId },
+      data: { katasandi: hashedPassword },
+    });
+
+    return { message: 'Kata sandi berhasil diperbarui.' };
   }
 }
