@@ -46,8 +46,8 @@ export class PerusahaanController {
     }
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Peran(PeranPengguna.siswa, PeranPengguna.alumni, PeranPengguna.admin)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Peran(PeranPengguna.siswa, PeranPengguna.alumni, PeranPengguna.admin)
   @Get('getall')
   async findAll() {
     try {
